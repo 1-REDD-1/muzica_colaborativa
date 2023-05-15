@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Score Sheet Pattern</title>
+    <script src="Tone.min.js"></script>
+</head>
+
+<style>
+    /* add some basic styles to the table */
+    table {
+      border-collapse: collapse;
+    }
+  
+    th, td {
+      border: 1px solid black;
+      padding: 12px;
+      text-align: center;
+    }
+  
+    /* add a style for active cells */
+    td.active {
+      background-color: black;
+    }
+</style>
+
+<body>
+    <table id="scorepattern">
+        <tr>
+          <th></th>
+          <th>1</th>
+          <th>2</th>
+          <th>3</th>
+          <th>4</th>
+        </tr>
+        <tr>
+          <td>Instrument 1</td>
+          <td contenteditable="true"></td>
+          <td contenteditable="true"></td>
+          <td contenteditable="true"></td>
+          <td contenteditable="true"></td>
+        </tr>
+      </table>
+
+    <button onclick="playExamplePattern()">Play hard-coded pattern</button>
+    <button onclick="playPattern()">Play the pattern</button>
+    <button onclick="addColumn()">Add Column</button>
+    <button onclick="deleteColumn()">Delete Column</button>
+    
+    <p id="isplayingp">Not playing!</p>
+    
+    <script>
+        let sequence;
+
+        function playExamplePattern () {
+            // create a synth
+            const synth = new Tone.Synth().toDestination();
+
+            // create a sequence of notes
+            const notes = [60, 62, 64, 65, 67, 69, 71, 72];
+            // let notes = [60, 62];
+            if (sequence !== undefined) {
+                if (sequence.disposed == false) {
+                    // sequence.stop();
+                    sequence.dispose();
+                    document.getElementById("isplayingp").innerHTML = "Stopped the previous one!";
+                }
+            } else {
+                document.getElementById("isplayingp").innerHTML = "Started the first one!";
+            }
+
+            sequence = new Tone.Sequence((time, note) => {
+                synth.triggerAttackRelease(Tone.Midi(note).toFrequency(), "8n", time);
+            }, notes, "8n");
+
+            // start the sequence
+            Tone.Transport.start();
+            sequence.start();
+        }
+
+        function playPattern () {
+            const synth = new Tone.Synth().toDestination();
+            let pattern_table = document.getElementById("scorepattern");
+            let row = pattern_table.rows[1];
+            let notes = [];
+
+            for (var i = 1; i < row.cells.length; i++) {
+                if (isNaN(parseInt(row.cells[i].textContent)) == false) {
+                    notes.push(parseInt(row.cells[i].textContent));
+                }
+            }
+
+            if (sequence !== undefined) {
+                if (sequence.disposed == false) {
+                    sequence.dispose();
+                    document.getElementById("isplayingp").innerHTML = "Stopped the previous one!";
+                }
+            } else {
+                document.getElementById("isplayingp").innerHTML = "Started the first one!";
+            }
+
+            sequence = new Tone.Sequence((time, note) => {
+                synth.triggerAttackRelease(Tone.Midi(note).toFrequency(), "4n", time);
+            }, notes, "8n");
+
+            // start the sequence
+            Tone.Transport.start();
+            sequence.start();
+        }
+
+        function addColumn () {
+            let pattern_table = document.getElementById("scorepattern");
+            const numRows = pattern_table.rows.length;
+            const numCols = pattern_table.rows[0].cells.length;
+        
+            for (let i = 0; i < numRows; i++) {
+                const newCell = pattern_table.rows[i].insertCell();
+
+                if (i == 0) {
+                    newCell.innerHTML = '<b>' + numCols + '</b>';
+                } else {
+                    newCell.setAttribute("contenteditable", "true");
+                }
+            }
+        }
+
+        function deleteColumn () {
+            let pattern_table = document.getElementById("scorepattern");
+            const numCols = pattern_table.rows[0].cells.length;
+        
+            if (numCols > 3) {
+                for (let i = 0; i < pattern_table.rows.length; i++) {
+                    pattern_table.rows[i].deleteCell(numCols - 1);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
